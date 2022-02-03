@@ -6,8 +6,7 @@ import time
 import requests
 from dotenv import load_dotenv
 
-from config import (service_url, dataset_names,
-                    kml_file)
+from config import (service_url, dataset_names, kml_file)
 from download import Download
 
 
@@ -35,15 +34,21 @@ class DownloadEORS(Download):
                      data,
                      api_key=None):
         """
+        This function handles the comunication with the API server
 
         Parameters
         ----------
-        request
-        data
-        api_key
+        request : str
+            The request type from the database see here: https://m2m.cr.usgs.gov/api/docs/json/.
+        data : dict
+            payload - used as time and location filter.
+        api_key : str, optional
+            API key to comunicate with the API. The default is None.
 
         Returns
         -------
+        dict or str (when loggin - API key)
+            Requested data.
 
         """
 
@@ -62,7 +67,9 @@ class DownloadEORS(Download):
                 sys.exit()
             output = json.loads(response.text)
             if output['errorCode'] is not None:
-                self.logger.warning(output['errorCode'], '- ', output['errorMessage'])
+                self.logger.warning(output['errorCode'], 
+                                    '- ', 
+                                    output['errorMessage'])
                 sys.exit()
             if http_status_code == 404:
                 self.logger.warning('404 Not Found')
@@ -82,12 +89,17 @@ class DownloadEORS(Download):
 
     def get_available_datasets(self) -> dict:
         """
+        This function fetch the datasets with avaliabole data for time 
+        and place. The time range and place are a class variables
 
         Returns
         -------
+        dict
+            Return a dict with information on each dataset.
+            The dict keys are the dataset's name .
 
         """
-        datasets = {}
+        _datasets = {}
         for dataset in self.dataset_names:
             payload = {'datasetName': dataset,
                        'spatialFilter': self.spatial_filter,
@@ -97,20 +109,27 @@ class DownloadEORS(Download):
             dataset_data = self.send_request('dataset-search', payload, self.api_key)
             self.logger.info(f'Found {len(dataset_data)} datasets')
             if len(dataset_data):
-                datasets[dataset] = dataset_data[0]
-        return datasets
+                _datasets[dataset] = dataset_data[0]
+        return _datasets
 
     def get_scenes_for_datasets(self,
                                 _datasets) -> dict:
         """
+        Fetch a dict of all the avaliabole sinces (images) in each dataset 
+        for a give time amd place. The time and place are class variaboles
 
         Parameters
         ----------
         _datasets : dict
+            dict with information on the dataset to explore. the _dataset
+            dict keys are thr datasets names.
 
         Returns
         -------
         dict
+            dict with keys - dataset names
+                      values - a list of entityId and productId dict keys for 
+                      all the avaliabole scines for each dataset 
 
         """
         scenes_to_downloads = {}
@@ -152,13 +171,20 @@ class DownloadEORS(Download):
     def get_download_urls(self,
                           scenes_to_download) -> dict:
         """
+        This function fetch the download url for each sence
 
         Parameters
         ----------
-        scenes_to_download
+        scenes_to_download : dict
+            dict with keys - dataset names
+                      values - a list of entityId and productId dict keys for 
+                      all the avaliabole scines for each dataset 
 
         Returns
         -------
+        dict
+            dict with downloadId as keys and download url and entityId for each 
+            avaliabole sence.
 
         """
         ready_downloads_info = {}
@@ -199,14 +225,19 @@ class DownloadEORS(Download):
     def download_all_to_files(self,
                               download_urls):
         """
+        This function loop through the download URLs and call the
+        download_to_file function
 
         Parameters
         ----------
         download_urls : dict
+            dict with downloadId as keys and download url and entityId for each 
+            avaliabole sence.
 
         Returns
         -------
-        None
+        None.
+
         """
         file_name: str
         for download_info in download_urls.values():
