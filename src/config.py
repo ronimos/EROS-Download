@@ -4,9 +4,6 @@ Created on Sat Jan 29 16:39:01 2022
 
 @author: Ron Simenhois
 """
-import logging
-import os
-
 
 DATA_PATH = '../data'
 LOG_PATH = '../LOGS'
