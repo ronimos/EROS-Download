@@ -244,18 +244,19 @@ class DownloadEORS(Download):
             url = download_info['url']
             file_name = download_info['entityId'] + ".zip"
             _ = self.download_to_file(url, file_name)
+            
+    def close_api(self):
+        """
+        This function close the connection to the API
 
+        Returns
+        -------
+        None.
 
-if __name__ == '__main__':
-    dl = DownloadEORS(date_range=5514)
-    datasets = dl.get_available_datasets()
-    scenes_to_download = dl.get_scenes_for_datasets(datasets)
-    download_urls = dl.get_download_urls(scenes_to_download)
-    dl.download_all_to_files(download_urls)
-    # Logout so the API Key cannot be used anymore
-    endpoint = 'logout'
-    if dl.send_request(service_url + endpoint, {}, dl.api_key) is None:
-        dl.logger.info('Logged Out\n\n')
-    else:
-        dl.logger.warning('Logout Failed\n\n')
-
+        """
+        endpoint = 'logout'
+        if self.send_request(endpoint, {}, self.api_key) is None:
+            self.logger.info('Logged Out\n\n')
+        else:
+            self.logger.warning('Logout Failed\n\n')
+        
